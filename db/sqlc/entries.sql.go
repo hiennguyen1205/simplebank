@@ -105,7 +105,7 @@ func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Ent
 	return items, nil
 }
 
-const updateEntry = `-- name: UpdateEntry :exec
+const updateEntry = `-- name: UpdateEntry :one
 UPDATE entries
 SET amount = $2
 WHERE id = $1 RETURNING id, account_id, amount, created_at, updated_at
@@ -116,7 +116,15 @@ type UpdateEntryParams struct {
 	Amount int64 `json:"amount"`
 }
 
-func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) error {
-	_, err := q.exec(ctx, q.updateEntryStmt, updateEntry, arg.ID, arg.Amount)
-	return err
+func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entries, error) {
+	row := q.queryRow(ctx, q.updateEntryStmt, updateEntry, arg.ID, arg.Amount)
+	var i Entries
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.Amount,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

@@ -15,4 +15,8 @@ migratedown:
 
 sqlc:
 	sqlc generate
+
+test:
+	# argument ./... run unit test all
+	go test -v -cover ./...
 .PHONY: postgres createdb dropdb migrateup migratedown sqlc
